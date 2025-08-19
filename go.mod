@@ -1,4 +1,4 @@
-module github.com/daijro/hazetunnel/hazetunnel
+module github.com/zetxtech/hazetunnel
 
 go 1.21.5
 

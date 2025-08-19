@@ -32,50 +32,38 @@ This project was built on [tlsproxy](https://github.com/rosahaj/tlsproxy), pleas
 
 # Usage
 
-This package can be installed and used through Python. It is avaliable on PyPi:
-
-```bash
-pip install hazetunnel
-```
-
-You can also use it as a standalone Go executable by building the tool with the [guide](https://github.com/daijro/hazetunnel?tab=readme-ov-file#building) below.
-
 ## CLI Usage
 
-After installing Hazetunnel through PyPi, it can be used as a standalone CLI application.
-
-This example will inject `alert('Hello world');` before all Javascript responses:
+Example: inject `alert('Hello world');` before all Javascript responses:
 
 ```bash
-hazetunnel run --payload "alert('Hello world');" --port 8080
+./hazetunnel -payload "alert('Hello world');" -port 8080
 ```
 
-<details>
-
-  <summary>
-    CLI parameters
-  </summary>
 
 ```
-$ hazetunnel run --help
-Usage: hazetunnel run [OPTIONS]
-
-  Run the MITM proxy
-
-Options:
-  -p, --port TEXT        Port to use. Default: 8080.
-  --user_agent TEXT      Override User-Agent headers.
-  --payload TEXT         Payload to inject into responses.
-  --upstream_proxy TEXT  Forward requests to an upstream proxy.
-  --cert TEXT            Path to the certificate file.
-  --key TEXT             Path to the key file.
-  -v, --verbose          Enable verbose output.
-  --help                 Show this message and exit.
+Usage of hazetunnel:
+  -addr string
+        Proxy listen address
+  -cert string
+        TLS CA certificate (generated automatically if not present) (default "cert.pem")
+  -key string
+        TLS CA key (generated automatically if not present) (default "key.pem")
+  -payload string
+        Payload to inject into responses. Optional.
+  -port string
+        Proxy listen port (default "8080")
+  -upstream_proxy string
+        Forward requests to an upstream proxy. Optional.
+  -user_agent string
+        Override the User-Agent header for incoming requests. Optional.
+  -verbose
+        Enable verbose logging
 ```
 
-</details>
 
-More info on other CLI commands are avaliable [here](https://github.com/daijro/hazetunnel/tree/main/python-bindings#python-usage).
+
+Python bindings have been removed.
 
 ### Payload Injection
 
@@ -146,68 +134,11 @@ This supports User-Agents from **Firefox, Chrome, iOS, Android, Edge (legacy), S
 
 ## Python API
 
-Hazetunnel can also be used as a Python library.
-
-#### Simple usage
-
-```py
-from hazetunnel import HazeTunnel
-from browserforge.headers import HeaderGenerator
-...
-# Initialize the proxy
-proxy = HazeTunnel(port='8080', payload='alert("Hello World!");')
-proxy.launch()
-# Send the request
-requests.get(
-    url='https://example.com',
-    headers=HeaderGenerator().generate(browser='chrome'),
-    proxies={'https': proxy.url},
-    verify=proxy.cert
-).text
-# Stop the proxy
-proxy.stop()
-```
-
-<details>
-
-  <summary>
-    HazeTunnel parameters
-  </summary>
-
-```
-Parameters:
-    port (Optional[str]): Specify a port to listen on. Default is random.
-    payload (Optional[str]): Payload to inject into responses
-    user_agent (Optional[str]): Optionally override all User-Agent headers
-    upstream_proxy (Optional[str]): Optionally forward requests to an upstream proxy
-```
-
-</details>
-
-#### Using a context manager
-
-A context manager will automatically close the server when not needed anymore.
-
-```py
-with HazeTunnel(port='8080', payload='alert("Hello World!");') as proxy:
-  # Send the request
-  requests.get(
-      url='https://example.com',
-      headers=HeaderGenerator().generate(browser='chrome'),
-      proxies={'https': proxy.url},
-      verify=proxy.cert
-  ).text
-```
+Python bindings and CFFI artifacts have been removed in favor of a pure Go CLI.
 
 <hr width=50>
 
 ## Building
-
-### CFFI
-
-Pre-built C shared library binaries provided in [Releases](https://github.com/daijro/hazetunnel/releases).
-
-Otherwise, you can build these yourself using the `build.bat` file provided.
 
 ### CLI
 
@@ -219,22 +150,4 @@ cd hazetunnel
 go build
 ```
 
-#### Usage
-
-```
-Usage of hazetunnel:
-  -addr string
-        Proxy listen address
-  -cert string
-        TLS CA certificate (generated automatically if not present) (default "cert.pem")
-  -key string
-        TLS CA key (generated automatically if not present) (default "key.pem")
-  -port string
-        Proxy listen port (default "8080")
-  -user_agent string
-        Override the User-Agent header for incoming requests. Optional.
-  -verbose
-        Enable verbose logging
-```
-
----
+ 
