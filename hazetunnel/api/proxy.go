@@ -97,19 +97,14 @@ func setupProxy(proxy *goproxy.ProxyHttpServer, Flags *ProxySetup) {
 				upstreamProxy = proxyUrl
 			}
 
-			// Skip TLS handshake if scheme is HTTP
-			ctx.Logf("Scheme: %s", req.URL.Scheme)
-			if req.URL.Scheme == "http" {
-				ctx.Logf("Skipping TLS for HTTP request")
-				return req, nil
-			}
-
-			// Build round tripper
+			// Build round tripper (applies to both HTTP and HTTPS)
+			// Note: upstreamProxy will be nil if not configured
 			roundTripper := sf.NewUTLSHTTPRoundTripperWithProxy(clientHelloId, &utls.Config{
 				InsecureSkipVerify: true,
 				OmitEmptyPsk:       true,
 			}, http.DefaultTransport, false, upstreamProxy)
 
+			// Ensure all requests use our custom RoundTripper
 			ctx.RoundTripper = goproxy.RoundTripperFunc(
 				func(req *http.Request, ctx *goproxy.ProxyCtx) (*http.Response, error) {
 					return roundTripper.RoundTrip(req)

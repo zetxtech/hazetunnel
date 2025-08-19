@@ -19,7 +19,7 @@ type ProxySetup struct {
 	Port          string `json:"port"`
 	UserAgent     string `json:"user_agent,omitempty"`
 	Payload       string `json:"payload,omitempty"`
-	UpstreamProxy string `json:"upstreamproxy,omitempty"`
+	UpstreamProxy string `json:"upstream_proxy,omitempty"`
 	Id            string `json:"id"`
 }
 

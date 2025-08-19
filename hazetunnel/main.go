@@ -16,6 +16,7 @@ func main() {
 	flag.StringVar(&Flags.Addr, "addr", "", "Proxy listen address")
 	flag.StringVar(&Flags.Port, "port", "8080", "Proxy listen port")
 	flag.StringVar(&Flags.UserAgent, "user_agent", "", "Override the User-Agent header for incoming requests. Optional.")
+	flag.StringVar(&Flags.UpstreamProxy, "upstream_proxy", "", "Forward requests to an upstream proxy. Optional.")
 	flag.StringVar(&api.Config.Cert, "cert", "cert.pem", "TLS CA certificate (generated automatically if not present)")
 	flag.StringVar(&api.Config.Key, "key", "key.pem", "TLS CA key (generated automatically if not present)")
 	flag.BoolVar(&api.Config.Verbose, "verbose", false, "Enable verbose logging")

@@ -171,7 +171,8 @@ class Library:
 
         # Set the default key pair paths
         bin_path = root_dir / "bin"
-        self.key_pair = (str(bin_path / "key.pem"), str(bin_path / "cert.pem"))
+        # (cert, key)
+        self.key_pair = (str(bin_path / "cert.pem"), str(bin_path / "key.pem"))
 
     @staticmethod
     def get_open_port() -> int:
