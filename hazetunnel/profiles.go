@@ -9,11 +9,12 @@ import (
 )
 
 // Predefined dictionary with browser versions and their corresponding utls values.
-// Updated as of utls v1.6.6.
-// Extracted from here: https://github.com/refraction-networking/utls/blob/master/u_common.go#L573
+// Updated as of utls v1.8.0.
+// Based on: https://github.com/refraction-networking/utls/blob/master/u_common.go
 var utlsDict = map[string]map[int]string{
 	"Firefox": {
-		-1:  "55",
+		-1:  "120", // default to latest supported
+		55:  "55",
 		56:  "56",
 		63:  "63",
 		65:  "65",
@@ -23,7 +24,8 @@ var utlsDict = map[string]map[int]string{
 		120: "120",
 	},
 	"Chrome": {
-		-1:  "58",
+		-1:  "133", // default to latest supported in utls v1.8.0
+		58:  "58",
 		62:  "62",
 		70:  "70",
 		72:  "72",
@@ -35,10 +37,14 @@ var utlsDict = map[string]map[int]string{
 		106: "106",
 		112: "112_PSK",
 		114: "114_PSK",
+		115: "115_PQ",
 		120: "120",
+		131: "131",
+		133: "133",
 	},
 	"iOS": {
-		-1: "111",
+		-1: "14",  // default to latest supported
+		11: "111", // legacy "111" means 11.1
 		12: "12.1",
 		13: "13",
 		14: "14",
@@ -48,14 +54,15 @@ var utlsDict = map[string]map[int]string{
 	},
 	"Edge": {
 		-1: "85",
-		// 106: "106", incompatible with utls
+		85: "85",
+		// Note: Edge 106 exists in utls but marked as incompatible
 	},
 	"Safari": {
 		-1: "16.0",
 	},
 	"360Browser": {
 		-1: "7.5",
-		// 11: "11.0", incompatible with utls
+		// Note: 360Browser 11.0 exists in utls but marked as incompatible
 	},
 	"QQBrowser": {
 		-1: "11.1",
@@ -95,4 +102,27 @@ func utlsVersion(browserName, browserVersion string) (string, error) {
 		}
 	}
 	return "", fmt.Errorf("browser '%s' not found in UTLS dictionary", browserName)
+}
+
+// GetSupportedBrowsers returns a list of all supported browsers
+func GetSupportedBrowsers() []string {
+	browsers := make([]string, 0, len(utlsDict))
+	for browser := range utlsDict {
+		browsers = append(browsers, browser)
+	}
+	return browsers
+}
+
+// GetSupportedVersions returns all supported versions for a given browser
+func GetSupportedVersions(browserName string) []int {
+	if versions, ok := utlsDict[browserName]; ok {
+		versionList := make([]int, 0, len(versions))
+		for version := range versions {
+			if version != -1 { // exclude default version
+				versionList = append(versionList, version)
+			}
+		}
+		return versionList
+	}
+	return nil
 }
