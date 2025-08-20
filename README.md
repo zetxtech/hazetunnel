@@ -40,6 +40,12 @@ Example: inject `alert('Hello world');` before all Javascript responses:
 ./hazetunnel -payload "alert('Hello world');" -port 8080
 ```
 
+Example: start proxy with authentication (username: `myuser`, password: `mypass`):
+
+```bash
+./hazetunnel -username myuser -password mypass -port 8080
+```
+
 
 ```
 Usage of hazetunnel:
@@ -49,14 +55,18 @@ Usage of hazetunnel:
         TLS CA certificate (generated automatically if not present) (default "cert.pem")
   -key string
         TLS CA key (generated automatically if not present) (default "key.pem")
+  -password string
+        Password for proxy authentication. Optional.
   -payload string
         Payload to inject into responses. Optional.
   -port string
         Proxy listen port (default "8080")
-  -upstream_proxy string
+  -upstream-proxy string
         Forward requests to an upstream proxy. Optional.
-  -user_agent string
+  -user-agent string
         Override the User-Agent header for incoming requests. Optional.
+  -username string
+        Username for proxy authentication. Optional.
   -verbose
         Enable verbose logging
 ```

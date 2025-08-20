@@ -20,6 +20,8 @@ type ProxySetup struct {
 	UserAgent     string `json:"user_agent,omitempty"`
 	Payload       string `json:"payload,omitempty"`
 	UpstreamProxy string `json:"upstream_proxy,omitempty"`
+	Username      string `json:"username,omitempty"`
+	Password      string `json:"password,omitempty"`
 	Id            string `json:"id"`
 }
 

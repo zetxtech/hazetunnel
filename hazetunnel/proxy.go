@@ -2,9 +2,11 @@ package api
 
 import (
 	"context"
+	"encoding/base64"
 	"log"
 	"net/http"
 	"net/url"
+	"strings"
 	"sync"
 
 	"github.com/elazarl/goproxy"
@@ -14,7 +16,10 @@ import (
 
 type contextKey string
 
-const payloadKey contextKey = "payload"
+const (
+	payloadKey contextKey = "payload"
+	authKey    contextKey = "authenticated"
+)
 
 type ProxyInstance struct {
 	Server *http.Server
@@ -26,6 +31,39 @@ var (
 	serverMux        sync.Mutex
 	proxyInstanceMap = make(map[string]*ProxyInstance)
 )
+
+// validateProxyAuth validates HTTP Basic Authentication for proxy requests
+func validateProxyAuth(req *http.Request, username, password string) bool {
+	// If no authentication is configured, allow all requests
+	if username == "" && password == "" {
+		return true
+	}
+
+	// Get the Proxy-Authorization header
+	authHeader := req.Header.Get("Proxy-Authorization")
+	if authHeader == "" {
+		return false
+	}
+
+	// Parse Basic authentication
+	if !strings.HasPrefix(authHeader, "Basic ") {
+		return false
+	}
+
+	encoded := authHeader[6:] // Remove "Basic " prefix
+	decoded, err := base64.StdEncoding.DecodeString(encoded)
+	if err != nil {
+		return false
+	}
+
+	credentials := string(decoded)
+	parts := strings.SplitN(credentials, ":", 2)
+	if len(parts) != 2 {
+		return false
+	}
+
+	return parts[0] == username && parts[1] == password
+}
 
 func initServer(Flags *ProxySetup) *http.Server {
 	serverMux.Lock()
@@ -55,11 +93,38 @@ func initServer(Flags *ProxySetup) *http.Server {
 }
 
 func setupProxy(proxy *goproxy.ProxyHttpServer, Flags *ProxySetup) {
-	proxy.OnRequest().HandleConnect(goproxy.AlwaysMitm)
+	// Handle CONNECT requests (HTTPS) with authentication
+	proxy.OnRequest().HandleConnect(goproxy.FuncHttpsHandler(func(host string, ctx *goproxy.ProxyCtx) (*goproxy.ConnectAction, string) {
+		// Validate proxy authentication for CONNECT requests
+		if !validateProxyAuth(ctx.Req, Flags.Username, Flags.Password) {
+			ctx.Resp = proxyAuthRequiredResponse(ctx.Req, ctx)
+			return goproxy.RejectConnect, host
+		}
+		// Mark this connection as authenticated for subsequent requests
+		ctx.UserData = map[contextKey]interface{}{
+			authKey: true,
+		}
+		return goproxy.MitmConnect, host
+	}))
 
 	proxy.OnRequest().DoFunc(
 		func(req *http.Request, ctx *goproxy.ProxyCtx) (*http.Request, *http.Response) {
 			var upstreamProxy *url.URL
+
+			// Check if this connection was already authenticated via CONNECT
+			isAuthenticated := false
+			if ctx.UserData != nil {
+				if userData, ok := ctx.UserData.(map[contextKey]interface{}); ok {
+					if auth, exists := userData[authKey]; exists {
+						isAuthenticated = auth.(bool)
+					}
+				}
+			}
+
+			// Validate proxy authentication if configured and not already authenticated
+			if !isAuthenticated && !validateProxyAuth(req, Flags.Username, Flags.Password) {
+				return req, proxyAuthRequiredResponse(req, ctx)
+			}
 
 			// Override the User-Agent header if specified
 			// If one wasn't specified, verify a User-Agent is in the request
